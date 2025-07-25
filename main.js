@@ -1,11 +1,27 @@
 import { Command } from 'commander';
 import { existsSync, lstatSync, readdirSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, extname } from 'path';
+
+import { checkFile } from './source/lint.js';
+
+/**
+ * Проверяет, имеет ли файл одно из указанных расширений
+ * @param {string} filePath — путь или имя файла
+ * @param {string[]} allowedExtensions — массив расширений, например ['.md', '.ct']
+ * @returns {boolean} true, если расширение подходит
+ */
+function hasAllowedExtension(filePath, allowedExtensions) {
+    const ext = extname(filePath).toLowerCase();
+    return allowedExtensions.some(extName => extName.toLowerCase() === ext);
+  }
 
 // Функция обработки одного файла
 function processFile(filePath) {
-  console.log(`📁 Обрабатываю файл: ${filePath}`);
-  // Здесь ваша логика: чтение, парсинг, изменение и т.д.
+  // console.log(`📁 Обрабатываю файл: ${filePath}`);
+
+  if (hasAllowedExtension(filePath, ['.md', '.ct'])) {
+    checkFile(filePath);
+  }
 }
 
 // Рекурсивная функция для обхода каталога
