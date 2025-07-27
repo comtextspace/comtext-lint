@@ -5,7 +5,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "process": "node main.js"
+    "process": "node main.js",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
   },
   "dependencies": {
     "commander": "^14.0.0",
@@ -45,5 +47,10 @@
     "remark-lint-rule-style": "^4.0.1",
     "remark-lint-unordered-list-marker-style": "^4.0.1",
     "vfile-reporter": "^8.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "eslint": "^9.32.0",
+    "globals": "^16.3.0"
   }
 }

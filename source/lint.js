@@ -23,7 +23,7 @@ import remarkLintMediaStyle from 'remark-lint-media-style';
 import remarkLintNoBlockquoteWithoutMarker from 'remark-lint-no-blockquote-without-marker';
 import remarkLintNoConsecutiveBlankLines from 'remark-lint-no-consecutive-blank-lines';
 import remarkLintNoEmptyUrl from 'remark-lint-no-empty-url';
-import remarkLintNoHeadingContentIndent from 'remark-lint-no-heading-content-indent'
+import remarkLintNoHeadingContentIndent from 'remark-lint-no-heading-content-indent';
 import remarkLintNoHeadingIndent from 'remark-lint-no-heading-indent';
 import remarkLintNoHeadingLikeParagraph from 'remark-lint-no-heading-like-paragraph';
 import remarkLintNoHeadingPunctuation from 'remark-lint-no-heading-punctuation';
