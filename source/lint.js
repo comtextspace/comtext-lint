@@ -38,7 +38,11 @@ import remarkLintNoUnusedDefinitions from 'remark-lint-no-unused-definitions';
 import remarkLintRuleStyle from 'remark-lint-rule-style';
 import remarkLintUnorderedListMarkerStyle from 'remark-lint-unordered-list-marker-style';
 
-export function checkFile(filePath) {
+export function checkFile(filePath, options) {
+
+  if (!options) {
+    options = {};
+  }
 
   if (path.extname(filePath) === '.md') {
     const fileContent = fs.readFileSync(filePath, 'utf8');
@@ -137,7 +141,7 @@ export function checkFile(filePath) {
       .processSync(fileContent);
 
     console.log(`${filePath}`);
-    const report = reporter(fileResult);
+    const report = reporter(fileResult, options);
     console.log(report);
     console.log('------------------------');
   }
