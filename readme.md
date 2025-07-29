@@ -29,7 +29,7 @@ yarn process [path]
 ### Проверки
 
 | Пакет                                                                                                                                                    | Параметры   |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- |             |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
 | [remark-lint-blockquote-indentation](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-remark-lint-blockquote-indentation)               | 2           |
 | [remark-lint-code-block-style](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-remark-lint-code-block-style)                           | 'fenced'    |
 | [remark-lint-correct-media-syntax](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-remark-lint-correct-media-syntax)                   |             |
