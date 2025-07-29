@@ -38,6 +38,9 @@ import remarkLintNoUnusedDefinitions from 'remark-lint-no-unused-definitions';
 import remarkLintRuleStyle from 'remark-lint-rule-style';
 import remarkLintUnorderedListMarkerStyle from 'remark-lint-unordered-list-marker-style';
 
+// Custom rules
+import remarkLintFrontmatterRequiredFields from './rules/remark-lint-frontmatter-required-fields.js';
+
 export function checkFile(filePath, options) {
 
   if (!options) {
@@ -137,6 +140,9 @@ export function checkFile(filePath, options) {
       .use(remarkLintRuleStyle, '---')
 
       .use(remarkLintUnorderedListMarkerStyle, '*')
+
+      // Custom rules
+      .use(remarkLintFrontmatterRequiredFields)
 
       .processSync(fileContent);
 

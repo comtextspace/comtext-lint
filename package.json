@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
+    "js-yaml": "^4.1.0",
     "remark": "^15.0.1",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
@@ -47,6 +48,9 @@
     "remark-lint-no-unused-definitions": "^4.0.2",
     "remark-lint-rule-style": "^4.0.1",
     "remark-lint-unordered-list-marker-style": "^4.0.1",
+    "unified-lint-rule": "^3.0.1",
+    "unist-util-position-from-estree": "^2.0.0",
+    "unist-util-visit": "^5.0.0",
     "vfile-reporter": "^8.1.1"
   },
   "devDependencies": {
