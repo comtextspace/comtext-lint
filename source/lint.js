@@ -120,7 +120,7 @@ export function checkFile(filePath, options) {
       .use(remarkLintNoHeadingLikeParagraph)
       
       // Недопустимые символы в конце заголовков
-      .use(remarkLintNoHeadingPunctuation, ',.:;')
+      .use(remarkLintNoHeadingPunctuation, ',:;')
 
       // У строк таблицы должно быть столько же колонок сколько в заголовке
       .use(remarkLintNoHiddenTableCell)
