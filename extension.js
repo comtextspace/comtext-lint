@@ -30,11 +30,8 @@ export function activate(context) {
     const config = vscode.workspace.getConfiguration('comtext-lint');
     if (!config.get('enableOnSave', true)) return;
 
-    // Поддерживаем .md и .ct файлы
-    const uri = document.uri;
-    if (uri.fsPath.endsWith('.md') || uri.fsPath.endsWith('.ct')) {
-      await runLint(document);
-    }
+    // runLint сам проверяет расширения
+    await runLint(document);
   });
 
   context.subscriptions.push(checkCommand, saveListener);

@@ -13,40 +13,14 @@ function hasAllowedExtension(filePath, allowedExtensions) {
   return allowedExtensions.some(extName => extName.toLowerCase() === ext);
 }
 
-// Функция обработки одного файла — теперь возвращает ошибки в нужном формате
+// Функция обработки одного файла
 function processFile(filePath) {
   if (!hasAllowedExtension(filePath, ['.md', '.ct'])) {
     return;
   }
 
-  // Перехватываем ошибки из checkFile
-  const originalConsoleError = console.error;
-  const errors = [];
-
-  // Подменяем console.error, чтобы собрать ошибки
-  console.error = (...args) => {
-    errors.push(args.join(' '));
-  };
-
-  try {
-    checkFile(filePath);
-  } finally {
-    // Восстанавливаем оригинальный console.error
-    console.error = originalConsoleError;
-  }
-
-  // Если checkFile использует vfile и не пишет в console.error,
-  // вам нужно модифицировать checkFile напрямую (см. ниже).
-  
-  // Выводим ошибки в формате: file:line:col: message
-  for (const err of errors) {
-    // Пример: если ошибка уже в формате "file:12:3: message" — просто выводим
-    // Иначе — нужно парсить и преобразовывать
-    console.error(err);
-  }
-
-  // ⚠️ Если checkFile НЕ использует console.error, а просто возвращает ошибки,
-  // тогда нужно изменить саму функцию checkFile.
+  // checkFile сам выводит ошибки в console.error
+  checkFile(filePath);
 }
 
 // Рекурсивная функция для каталога
@@ -96,7 +70,7 @@ const program = new Command();
 program
   .name('Comtext-lint')
   .description('CLI для проверки файлов на соответствие формату Comtext')
-  .version('1.0.0');
+  .version('1.1.0');
 
 program
   .argument('<path>', 'путь к файлу или каталогу')
