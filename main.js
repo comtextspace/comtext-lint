@@ -20,7 +20,8 @@ function processFile(filePath) {
   }
 
   // checkFile сам выводит ошибки в console.error
-  checkFile(filePath);
+  // setExitCode: true - устанавливаем exit code для CLI
+  checkFile(filePath, { setExitCode: true });
 }
 
 // Рекурсивная функция для каталога
