@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import jsYaml from 'js-yaml';
 
 import { remark } from 'remark';
 import remarkLint from 'remark-lint';
@@ -40,15 +41,45 @@ import remarkLintUnorderedListMarkerStyle from 'remark-lint-unordered-list-marke
 // Custom rules
 import remarkLintFrontmatterRequiredFields from './rules/remark-lint-frontmatter-required-fields.js';
 
+/**
+ * Проверяет, есть ли в файле frontmatter с format: comtext
+ */
+function hasComtextFormat(fileContent) {
+  // Ищем frontmatter между --- (может быть пробел после ---)
+  const frontmatterMatch = fileContent.match(/^---\s*\n([\s\S]*?)\n---(\s|$)/m);
+  
+  if (!frontmatterMatch) {
+    return false;
+  }
+
+  try {
+    const frontmatterData = jsYaml.load(frontmatterMatch[1]);
+    return frontmatterData && frontmatterData.format === 'comtext';
+  } catch (err) {
+    // Если YAML невалидный, считаем что format: comtext нет
+    return false;
+  }
+}
+
 export function checkFile(filePath, options) {
 
   if (!options) {
     options = {};
   }
 
-  if (path.extname(filePath) === '.md') {
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const fileResult = remark()
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext !== '.md' && ext !== '.ct') {
+    return;
+  }
+
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  
+  // Проверяем наличие frontmatter с format: comtext
+  if (!hasComtextFormat(fileContent)) {
+    return;
+  }
+
+  const fileResult = remark()
       .use(remarkGfm)
       .use(remarkFrontmatter)
 
@@ -156,6 +187,5 @@ export function checkFile(filePath, options) {
   // Устанавливаем exit code, если есть ошибки
   if (fileResult.messages.length > 0) {
     process.exitCode = 1;
-  }
   }
 };
