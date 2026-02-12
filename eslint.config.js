@@ -17,10 +17,21 @@ export default [
     },
     rules: {
       'no-console': 'off',
-      'no-unused-vars': 'error',
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-undef': 'error',
       'semi': ['error', 'always'],
       'quotes': ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+    },
+  },
+
+  // Конфигурация для тестов
+  {
+    files: ['test/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest, // добавляем глобальные переменные Jest
+      },
     },
   },
 

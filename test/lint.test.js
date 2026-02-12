@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 
 import { jest } from '@jest/globals';
 
@@ -8,11 +7,9 @@ const { checkFile } = await import('../source/lint.js');
 const FIXTURES_PATH = path.join('test', 'fixtures');
 
 describe('checkFile', () => {
-    let originalError;
     let consoleErrorSpy;
   
     beforeAll(() => {
-      originalError = console.error;
       consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     });
   

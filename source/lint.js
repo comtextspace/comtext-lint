@@ -55,7 +55,7 @@ function hasComtextFormat(fileContent) {
   try {
     const frontmatterData = jsYaml.load(frontmatterMatch[1]);
     return frontmatterData && frontmatterData.format === 'comtext';
-  } catch (err) {
+  } catch {
     // Если YAML невалидный, считаем что format: comtext нет
     return false;
   }

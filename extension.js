@@ -77,7 +77,7 @@ async function runLint(document) {
       reject(err);
     });
 
-    child.on('close', (code) => {
+    child.on('close', () => {
       try {
         if (stderr.trim()) {
           const diagnostics = parseComtextLintOutput(stderr, document);
