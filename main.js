@@ -1,3 +1,4 @@
+// main.js
 import { Command } from 'commander';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import { join, resolve, extname } from 'path';
@@ -6,25 +7,49 @@ import { checkFile } from './source/lint.js';
 
 /**
  * Проверяет, имеет ли файл одно из указанных расширений
- * @param {string} filePath — путь или имя файла
- * @param {string[]} allowedExtensions — массив расширений, например ['.md', '.ct']
- * @returns {boolean} true, если расширение подходит
  */
 function hasAllowedExtension(filePath, allowedExtensions) {
-    const ext = extname(filePath).toLowerCase();
-    return allowedExtensions.some(extName => extName.toLowerCase() === ext);
-  }
-
-// Функция обработки одного файла
-function processFile(filePath) {
-  // console.log(`📁 Обрабатываю файл: ${filePath}`);
-
-  if (hasAllowedExtension(filePath, ['.md', '.ct'])) {
-    checkFile(filePath);
-  }
+  const ext = extname(filePath).toLowerCase();
+  return allowedExtensions.some(extName => extName.toLowerCase() === ext);
 }
 
-// Рекурсивная функция для обхода каталога
+// Функция обработки одного файла — теперь возвращает ошибки в нужном формате
+function processFile(filePath) {
+  if (!hasAllowedExtension(filePath, ['.md', '.ct'])) {
+    return;
+  }
+
+  // Перехватываем ошибки из checkFile
+  const originalConsoleError = console.error;
+  const errors = [];
+
+  // Подменяем console.error, чтобы собрать ошибки
+  console.error = (...args) => {
+    errors.push(args.join(' '));
+  };
+
+  try {
+    checkFile(filePath);
+  } finally {
+    // Восстанавливаем оригинальный console.error
+    console.error = originalConsoleError;
+  }
+
+  // Если checkFile использует vfile и не пишет в console.error,
+  // вам нужно модифицировать checkFile напрямую (см. ниже).
+  
+  // Выводим ошибки в формате: file:line:col: message
+  for (const err of errors) {
+    // Пример: если ошибка уже в формате "file:12:3: message" — просто выводим
+    // Иначе — нужно парсить и преобразовывать
+    console.error(err);
+  }
+
+  // ⚠️ Если checkFile НЕ использует console.error, а просто возвращает ошибки,
+  // тогда нужно изменить саму функцию checkFile.
+}
+
+// Рекурсивная функция для каталога
 function processDirectory(dirPath) {
   let files;
   try {
@@ -41,12 +66,11 @@ function processDirectory(dirPath) {
     if (stat.isFile()) {
       processFile(filePath);
     } else if (stat.isDirectory()) {
-      processDirectory(filePath); // рекурсивный вызов
+      processDirectory(filePath);
     }
   }
 }
 
-// Основная функция обработки пути (файл или каталог)
 function processPath(inputPath) {
   const fullPath = resolve(inputPath);
 
@@ -60,7 +84,6 @@ function processPath(inputPath) {
   if (stats.isFile()) {
     processFile(fullPath);
   } else if (stats.isDirectory()) {
-    console.log(`📂 Начинаю рекурсивную обработку каталога: ${fullPath}`);
     processDirectory(fullPath);
   } else {
     console.error(`❌ Указанный путь не является ни файлом, ни каталогом: ${fullPath}`);
@@ -68,7 +91,6 @@ function processPath(inputPath) {
   }
 }
 
-// Настройка CLI
 const program = new Command();
 
 program

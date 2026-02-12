@@ -1,8 +1,42 @@
 {
   "name": "comtext-lint",
-  "version": "1.0.0",
-  "main": "index.js",
+  "displayName": "Comtext Lint",
+  "description": "Проверка формата текстовых файлов по правилам формата Комтекст",
+  "version": "1.1.0",
+  "engines": {
+    "vscode": "^1.102.0",
+    "node": ">=20.0.0"
+  },
+  "main": "./extension.js",
   "license": "MIT",
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:comtext-lint.checkFormat",
+    "onLanguage:markdown"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "comtext-lint.checkFormat",
+        "title": "Comtext Lint: Проверить формат файла",
+        "category": "Comtext Lint"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Comtext Lint",
+      "properties": {
+        "comtext-lint.enableOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Запускать проверку при сохранении файла"
+        }
+      }
+    }
+  },
   "type": "module",
   "scripts": {
     "process": "node main.js",
@@ -12,6 +46,8 @@
   },
   "dependencies": {
     "commander": "^14.0.0",
+    "has-flag": "^5.0.1",
+    "is-fullwidth-code-point": "^5.1.0",
     "js-yaml": "^4.1.0",
     "remark": "^15.0.1",
     "remark-frontmatter": "^5.0.0",
@@ -48,6 +84,8 @@
     "remark-lint-no-unused-definitions": "^4.0.2",
     "remark-lint-rule-style": "^4.0.1",
     "remark-lint-unordered-list-marker-style": "^4.0.1",
+    "string-width": "^8.1.1",
+    "supports-color": "^10.2.2",
     "unified-lint-rule": "^3.0.1",
     "unist-util-position-from-estree": "^2.0.0",
     "unist-util-visit": "^5.0.0",
@@ -56,6 +94,9 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@jest/globals": "^30.0.5",
+    "@types/node": "^25.2.3",
+    "@types/vscode": "^1.102.0",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^9.32.0",
     "globals": "^16.3.0",
     "jest": "^30.0.5"

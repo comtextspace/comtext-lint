@@ -3,7 +3,6 @@ import path from 'path';
 
 import { remark } from 'remark';
 import remarkLint from 'remark-lint';
-import { reporter } from 'vfile-reporter';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkLintBlockquoteIndentation from 'remark-lint-blockquote-indentation';
@@ -146,9 +145,17 @@ export function checkFile(filePath, options) {
 
       .processSync(fileContent);
 
-    console.log(`${filePath}`);
-    const report = reporter(fileResult, options);
-    console.log(report);
-    console.log('------------------------');
+  for (const message of fileResult.messages) {
+    const { line, column, reason } = message;
+    // Если позиция неизвестна — ставим 1:1
+    const l = line ?? 1;
+    const c = column ?? 1;
+    console.error(`${filePath}:${l}:${c}: ${reason}`);
+  }
+
+  // Устанавливаем exit code, если есть ошибки
+  if (fileResult.messages.length > 0) {
+    process.exitCode = 1;
+  }
   }
 };
