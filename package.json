@@ -3,6 +3,7 @@
   "displayName": "Comtext Lint",
   "description": "Проверка формата текстовых файлов по правилам формата Комтекст",
   "version": "1.1.0",
+  "publisher": "comtext",
   "engines": {
     "vscode": "^1.102.0",
     "node": ">=20.0.0"
