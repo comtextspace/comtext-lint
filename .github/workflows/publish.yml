@@ -42,7 +42,7 @@ jobs:
 
       - name: Create namespace (if not exists)
         run: |
-          npx @vscode/ovsx create-namespace comtext --pat ${{ secrets.OVSX_PAT }} || true
+          npx ovsx create-namespace comtext --pat ${{ secrets.OVSX_PAT }} || true
         continue-on-error: true
 
       - name: Publish to Open VSX
