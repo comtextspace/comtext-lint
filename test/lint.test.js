@@ -1,8 +1,8 @@
 import path from 'path';
+import fs from 'fs';
 
 import { jest } from '@jest/globals';
-
-const { checkFile } = await import('../source/lint.js');
+import { checkFile } from '../source/lint.js';
 
 const FIXTURES_PATH = path.join('test', 'fixtures');
 
@@ -46,7 +46,7 @@ describe('checkFile', () => {
   it('lint 3-complex.md', () => {
     const fixturePath = path.join(FIXTURES_PATH, '3-complex.md');
     
-    checkFile(fixturePath, {color: false});
+    checkFile(fixturePath);
 
     const actualOutput = consoleErrorSpy.mock.calls.flat().join('\n');
     
@@ -66,6 +66,39 @@ describe('checkFile', () => {
     expect(actualOutput).toContain('Frontmatter is missing required field: version');
     expect(actualOutput).toContain('Unexpected `0` blank lines between nodes');
     expect(actualOutput).toContain('Unexpected missing final newline character');
+  });
+
+  it('should ignore file without format: comtext in frontmatter', () => {
+    const fixturePath = path.join(FIXTURES_PATH, '4-no-comtext.md');
+    
+    checkFile(fixturePath);
+
+    // Файлы без format: comtext должны игнорироваться
+    const actualOutput = consoleErrorSpy.mock.calls.flat().join('\n');
+    
+    expect(actualOutput).toBe('');
+  });
+
+  it('should ignore file without frontmatter', () => {
+    // Создаём временный файл без фронтматтера
+    const tmpPath = path.join(FIXTURES_PATH, '5-no-frontmatter.md');
+    const content = '# Заголовок\n\nТекст без фронтматтера\n';
+    
+    fs.writeFileSync(tmpPath, content, 'utf8');
+    
+    try {
+      checkFile(tmpPath);
+      
+      // Файлы без фронтматтера должны игнорироваться
+      const actualOutput = consoleErrorSpy.mock.calls.flat().join('\n');
+      
+      expect(actualOutput).toBe('');
+    } finally {
+      // Удаляем временный файл
+      if (fs.existsSync(tmpPath)) {
+        fs.unlinkSync(tmpPath);
+      }
+    }
   });
 
 });
