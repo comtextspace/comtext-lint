@@ -9,6 +9,10 @@
   },
   "main": "./extension.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/comtextspace/comtext-lint.git"
+  },
   "categories": [
     "Linters",
     "Other"
