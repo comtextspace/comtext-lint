@@ -40,6 +40,11 @@ jobs:
           echo "file=$VSIX_FILE" >> $GITHUB_OUTPUT
           echo "Found VSIX file: $VSIX_FILE"
 
+      - name: Create namespace (if not exists)
+        run: |
+          npx @vscode/ovsx create-namespace comtext --pat ${{ secrets.OVSX_PAT }} || true
+        continue-on-error: true
+
       - name: Publish to Open VSX
         uses: HaaLeo/publish-vscode-extension@v1
         with:
