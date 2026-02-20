@@ -40,6 +40,8 @@ import remarkLintUnorderedListMarkerStyle from 'remark-lint-unordered-list-marke
 
 // Custom rules
 import remarkLintFrontmatterRequiredFields from './rules/remark-lint-frontmatter-required-fields.js';
+import remarkLintHeadingMaxLevel from './rules/remark-lint-heading-max-level.js';
+import remarkLintEmphasisWholePhrase from './rules/remark-lint-emphasis-whole-phrase.js';
 
 /**
  * Проверяет, есть ли в файле frontmatter с format: comtext
@@ -173,6 +175,8 @@ export function checkFile(filePath, options) {
 
       // Custom rules
       .use(remarkLintFrontmatterRequiredFields)
+      .use(remarkLintHeadingMaxLevel)
+      .use(remarkLintEmphasisWholePhrase)
 
       .processSync(fileContent);
 

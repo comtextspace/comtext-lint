@@ -20,7 +20,9 @@ author: Автор
 - наличие и структуру YAML-фронтматтера (обязательные поля: `format`, `version`, `title`, `author`),
 - стиль заголовков, списков, цитат, ссылок и блоков кода,
 - отступы, пустые строки, переносы и другие аспекты типографики,
-- запрет HTML и других недопустимых элементов.
+- запрет HTML и других недопустимых элементов,
+- максимальный уровень заголовков (не более 6),
+- выделение целых фраз (предупреждение о раздельных выделениях).
 
 ## Установка (локальная разработка)
 
@@ -146,6 +148,14 @@ make install
 | [`remark-lint-no-unused-definitions`](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-lint-no-unused-definitions)                 |              |
 | [`remark-lint-rule-style`](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-lint-rule-style)                                       | `'---'`      |
 | [`remark-lint-unordered-list-marker-style`](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-lint-unordered-list-marker-style)     |   `'*'`      |
+
+### Кастомные проверки
+
+| Проверка                                                                     | Описание                                                                 |
+|-----------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| `remark-lint-frontmatter-required-fields`                                  | Проверка обязательных полей в frontmatter                               |
+| `remark-lint-heading-max-level`                                             | Проверка максимального уровня заголовков (не более 6)                    |
+| `remark-lint-emphasis-whole-phrase`                                         | Предупреждение о раздельных выделениях (`**слово1** **слово2**` вместо `**слово1 слово2**`) |
 
 ## Дополнительные ссылки
 
