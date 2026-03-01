@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { correctComtext } from '@comtext/ocr-fix';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,12 +18,41 @@ export function activate(context) {
     context.subscriptions.push(diagnosticCollection);
   }
 
-  // Регистрируем команду
+  // Регистрируем команду проверки формата
   const checkCommand = vscode.commands.registerCommand('comtext-lint.checkFormat', async () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       await runLint(editor.document);
     }
+  });
+
+  // Регистрируем команду исправления OCR-текста
+  const correctCommand = vscode.commands.registerCommand('comtext-lint.correctOcr', async () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('Нет открытого файла для исправления');
+      return;
+    }
+
+    const document = editor.document;
+    const originalText = document.getText();
+    const correctedText = correctComtext(originalText);
+
+    if (correctedText === originalText) {
+      vscode.window.showInformationMessage('Comtext OCR Fix: текст уже корректен, изменений нет');
+      return;
+    }
+
+    const fullRange = new vscode.Range(
+      document.positionAt(0),
+      document.positionAt(originalText.length)
+    );
+
+    await editor.edit((editBuilder) => {
+      editBuilder.replace(fullRange, correctedText);
+    });
+
+    vscode.window.showInformationMessage('Comtext OCR Fix: текст успешно исправлен');
   });
 
   // Подписываемся на сохранение — сразу при активации
@@ -34,7 +64,7 @@ export function activate(context) {
     await runLint(document);
   });
 
-  context.subscriptions.push(checkCommand, saveListener);
+  context.subscriptions.push(checkCommand, correctCommand, saveListener);
 
   // 🔥 Запускаем проверку для уже открытых Markdown-файлов
   const activeEditor = vscode.window.activeTextEditor;
