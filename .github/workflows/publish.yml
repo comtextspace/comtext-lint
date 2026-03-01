@@ -40,6 +40,12 @@ jobs:
           echo "file=$VSIX_FILE" >> $GITHUB_OUTPUT
           echo "Found VSIX file: $VSIX_FILE"
 
+      - name: Upload VSIX to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find-vsix.outputs.file }}
+
       - name: Create namespace (if not exists)
         run: |
           npx ovsx create-namespace comtext --pat ${{ secrets.OVSX_PAT }} || true
