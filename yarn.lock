@@ -408,7 +408,7 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@comtext/ocr-fix@^1.1.1":
+"@comtext/ocr-fix@^1.1.4":
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/@comtext/ocr-fix/-/ocr-fix-1.1.4.tgz#c3085e3e91f51805d85932940e8aed17f5251b56"
   integrity sha512-7twg89L26ub5WRdWuuGcsUW/SSJBFuzJp+skAgCdBRLGObNoNrvTOyp97OzyPWJ+LkWC2SKgTzjgRatsaaeGXQ==
