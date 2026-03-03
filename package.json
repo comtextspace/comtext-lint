@@ -65,7 +65,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@comtext/ocr-fix": "^1.1.1",
+    "@comtext/ocr-fix": "^1.1.4",
     "commander": "^14.0.0",
     "has-flag": "^5.0.1",
     "is-fullwidth-code-point": "^5.1.0",
