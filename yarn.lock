@@ -409,9 +409,9 @@
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
 "@comtext/ocr-fix@^1.1.4":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@comtext/ocr-fix/-/ocr-fix-1.1.5.tgz#7d38d3cbcb59a5532337fdce2be18f5a736bb35a"
-  integrity sha512-GMMOHMItIJAl6nvPxoX2nOA4N20w4jUVpf9B1TkvdQD57J71P60uZd5IL6nAqwclYcSb1A5aALwbyG+XxG+x8g==
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/@comtext/ocr-fix/-/ocr-fix-1.1.6.tgz#6810310c7a7ba170a586e065b4b8eb4fa2de9624"
+  integrity sha512-KUWdKC1tcJ4cEoSkZyA6rpKCmiR8NgNaH/6bYRp5c6UMYpHvSOK++Rp/yEf0Z73P7dIFqhd5U9hDdcvRmhS5WA==
 
 "@emnapi/core@^1.4.3":
   version "1.4.5"
