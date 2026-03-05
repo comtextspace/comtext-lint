@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
+import { readdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { correctComtext } from '@comtext/ocr-fix';
@@ -10,8 +11,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let diagnosticCollection;
+let lastActiveEditor;
 
 export function activate(context) {
+  // Запоминаем последний активный редактор — нужно для команд из палитры (Ctrl+Shift+P),
+  // где activeTextEditor может быть undefined в момент вызова
+  const editorListener = vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) lastActiveEditor = editor;
+  });
+  if (vscode.window.activeTextEditor) {
+    lastActiveEditor = vscode.window.activeTextEditor;
+  }
+  context.subscriptions.push(editorListener);
   // Создаём коллекцию диагностики один раз
   if (!diagnosticCollection) {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('comtext-lint');
@@ -28,7 +39,7 @@ export function activate(context) {
 
   // Регистрируем команду исправления OCR-текста
   const correctCommand = vscode.commands.registerCommand('comtext-lint.correctOcr', async () => {
-    const editor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor ?? lastActiveEditor;
     if (!editor) {
       vscode.window.showWarningMessage('Нет открытого файла для исправления');
       return;
@@ -64,7 +75,40 @@ export function activate(context) {
     await runLint(document);
   });
 
-  context.subscriptions.push(checkCommand, correctCommand, saveListener);
+  // Регистрируем команду исправления OCR-текста во всей папке
+  const correctFolderCommand = vscode.commands.registerCommand('comtext-lint.correctOcrFolder', async (folderUri) => {
+    if (!folderUri) {
+      vscode.window.showWarningMessage('Команда должна вызываться из контекстного меню папки');
+      return;
+    }
+
+    const folderPath = folderUri.fsPath;
+    const entries = await readdir(folderPath, { withFileTypes: true });
+    const files = entries
+      .filter(e => e.isFile() && (e.name.endsWith('.md') || e.name.endsWith('.ct')))
+      .map(e => join(folderPath, e.name));
+
+    if (files.length === 0) {
+      vscode.window.showInformationMessage('Comtext OCR Fix: файлы .md и .ct в папке не найдены');
+      return;
+    }
+
+    let count = 0;
+    for (const filePath of files) {
+      const original = await readFile(filePath, 'utf8');
+      const corrected = correctComtext(original);
+      if (corrected !== original) {
+        await writeFile(filePath, corrected, 'utf8');
+        count++;
+      }
+    }
+
+    vscode.window.showInformationMessage(
+      `Comtext OCR Fix: обработано ${count} из ${files.length} файлов`
+    );
+  });
+
+  context.subscriptions.push(checkCommand, correctCommand, correctFolderCommand, saveListener);
 
   // 🔥 Запускаем проверку для уже открытых Markdown-файлов
   const activeEditor = vscode.window.activeTextEditor;

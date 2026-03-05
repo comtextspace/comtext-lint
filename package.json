@@ -21,6 +21,7 @@
   "activationEvents": [
     "onCommand:comtext-lint.checkFormat",
     "onCommand:comtext-lint.correctOcr",
+    "onCommand:comtext-lint.correctOcrFolder",
     "onLanguage:markdown"
   ],
   "contributes": {
@@ -34,6 +35,11 @@
         "command": "comtext-lint.correctOcr",
         "title": "Comtext Lint: Исправить OCR-текст",
         "category": "Comtext Lint"
+      },
+      {
+        "command": "comtext-lint.correctOcrFolder",
+        "title": "Comtext Lint: Исправить OCR-текст в папке",
+        "category": "Comtext Lint"
       }
     ],
     "menus": {
@@ -42,6 +48,13 @@
           "command": "comtext-lint.correctOcr",
           "group": "1_modification",
           "when": "editorTextFocus"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "comtext-lint.correctOcrFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "2_workspace"
         }
       ]
     },
