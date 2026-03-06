@@ -59,9 +59,9 @@ export function activate(context) {
       document.positionAt(originalText.length)
     );
 
-    await editor.edit((editBuilder) => {
-      editBuilder.replace(fullRange, correctedText);
-    });
+    const workspaceEdit = new vscode.WorkspaceEdit();
+    workspaceEdit.replace(document.uri, fullRange, correctedText);
+    await vscode.workspace.applyEdit(workspaceEdit);
 
     vscode.window.showInformationMessage('Comtext OCR Fix: текст успешно исправлен');
   });
