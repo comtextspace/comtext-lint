@@ -31,39 +31,56 @@ export function activate(context) {
 
   // Регистрируем команду проверки формата
   const checkCommand = vscode.commands.registerCommand('comtext-lint.checkFormat', async () => {
-    const editor = vscode.window.activeTextEditor ?? lastActiveEditor;
-    if (editor) {
+    try {
+      const editor = vscode.window.activeTextEditor
+        ?? lastActiveEditor
+        ?? vscode.window.visibleTextEditors[0];
+
+      if (!editor) {
+        vscode.window.showWarningMessage('Нет открытого файла для проверки');
+        return;
+      }
+
       await runLint(editor.document);
+    } catch (err) {
+      vscode.window.showErrorMessage(`Comtext Lint: ошибка — ${err.message}`);
     }
   });
 
   // Регистрируем команду исправления OCR-текста
   const correctCommand = vscode.commands.registerCommand('comtext-lint.correctOcr', async () => {
-    const editor = vscode.window.activeTextEditor ?? lastActiveEditor;
-    if (!editor) {
-      vscode.window.showWarningMessage('Нет открытого файла для исправления');
-      return;
+    try {
+      const editor = vscode.window.activeTextEditor
+        ?? lastActiveEditor
+        ?? vscode.window.visibleTextEditors[0];
+
+      if (!editor) {
+        vscode.window.showWarningMessage('Нет открытого файла для исправления');
+        return;
+      }
+
+      const document = editor.document;
+      const originalText = document.getText();
+      const correctedText = correctComtext(originalText);
+
+      if (correctedText === originalText) {
+        vscode.window.showInformationMessage('Comtext OCR Fix: текст уже корректен, изменений нет');
+        return;
+      }
+
+      const fullRange = new vscode.Range(
+        document.positionAt(0),
+        document.positionAt(originalText.length)
+      );
+
+      const workspaceEdit = new vscode.WorkspaceEdit();
+      workspaceEdit.replace(document.uri, fullRange, correctedText);
+      await vscode.workspace.applyEdit(workspaceEdit);
+
+      vscode.window.showInformationMessage('Comtext OCR Fix: текст успешно исправлен');
+    } catch (err) {
+      vscode.window.showErrorMessage(`Comtext OCR Fix: ошибка — ${err.message}`);
     }
-
-    const document = editor.document;
-    const originalText = document.getText();
-    const correctedText = correctComtext(originalText);
-
-    if (correctedText === originalText) {
-      vscode.window.showInformationMessage('Comtext OCR Fix: текст уже корректен, изменений нет');
-      return;
-    }
-
-    const fullRange = new vscode.Range(
-      document.positionAt(0),
-      document.positionAt(originalText.length)
-    );
-
-    const workspaceEdit = new vscode.WorkspaceEdit();
-    workspaceEdit.replace(document.uri, fullRange, correctedText);
-    await vscode.workspace.applyEdit(workspaceEdit);
-
-    vscode.window.showInformationMessage('Comtext OCR Fix: текст успешно исправлен');
   });
 
   // Подписываемся на сохранение — сразу при активации
