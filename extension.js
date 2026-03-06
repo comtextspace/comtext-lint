@@ -31,7 +31,7 @@ export function activate(context) {
 
   // Регистрируем команду проверки формата
   const checkCommand = vscode.commands.registerCommand('comtext-lint.checkFormat', async () => {
-    const editor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor ?? lastActiveEditor;
     if (editor) {
       await runLint(editor.document);
     }
