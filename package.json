@@ -23,6 +23,7 @@
     "onCommand:comtext-lint.correctOcr",
     "onCommand:comtext-lint.correctOcrFolder",
     "onCommand:comtext-lint.correctOcrFolderShallow",
+    "onCommand:comtext-lint.renumberFootnotes",
     "onLanguage:markdown"
   ],
   "contributes": {
@@ -34,7 +35,12 @@
       },
       {
         "command": "comtext-lint.correctOcr",
-        "title": "Comtext Lint: Исправить OCR-текст",
+        "title": "Исправить OCR-текст",
+        "category": "Comtext Lint"
+      },
+      {
+        "command": "comtext-lint.renumberFootnotes",
+        "title": "Перенумеровать примечания",
         "category": "Comtext Lint"
       },
       {
@@ -50,6 +56,10 @@
     ],
     "submenus": [
       {
+        "id": "comtext-lint/editor",
+        "label": "Comtext Lint"
+      },
+      {
         "id": "comtext-lint/folder",
         "label": "Comtext Lint"
       }
@@ -57,9 +67,19 @@
     "menus": {
       "editor/context": [
         {
-          "command": "comtext-lint.correctOcr",
+          "submenu": "comtext-lint/editor",
           "group": "1_modification",
           "when": "editorTextFocus"
+        }
+      ],
+      "comtext-lint/editor": [
+        {
+          "command": "comtext-lint.correctOcr",
+          "group": "1@1"
+        },
+        {
+          "command": "comtext-lint.renumberFootnotes",
+          "group": "1@2"
         }
       ],
       "explorer/context": [
@@ -100,7 +120,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@comtext/ocr-fix": "^1.1.4",
+    "@comtext/ocr-fix": "^1.2.0",
     "commander": "^14.0.0",
     "has-flag": "^5.0.1",
     "is-fullwidth-code-point": "^5.1.0",

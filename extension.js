@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { extname, join } from 'path';
-import { correctComtext } from '@comtext/ocr-fix';
+import { correctComtext, renumberFootnotes } from '@comtext/ocr-fix';
 
 import { checkFile, ALLOWED_EXTENSIONS } from './source/lint.js';
 
@@ -84,6 +84,40 @@ export function activate(context) {
     }
   });
 
+  // Регистрируем команду перенумерации примечаний
+  const renumberFootnotesCommand = vscode.commands.registerCommand('comtext-lint.renumberFootnotes', async () => {
+    try {
+      const editor = getActiveEditor();
+
+      if (!editor) {
+        vscode.window.showWarningMessage('Нет открытого файла для перенумерации');
+        return;
+      }
+
+      const document = editor.document;
+      const originalText = document.getText();
+      const renumberedText = renumberFootnotes(originalText);
+
+      if (renumberedText === originalText) {
+        vscode.window.showInformationMessage('Comtext: примечания уже пронумерованы корректно, изменений нет');
+        return;
+      }
+
+      const fullRange = new vscode.Range(
+        document.positionAt(0),
+        document.positionAt(originalText.length)
+      );
+
+      const workspaceEdit = new vscode.WorkspaceEdit();
+      workspaceEdit.replace(document.uri, fullRange, renumberedText);
+      await vscode.workspace.applyEdit(workspaceEdit);
+
+      vscode.window.showInformationMessage('Comtext: примечания успешно перенумерованы');
+    } catch (err) {
+      vscode.window.showErrorMessage(`Comtext: ошибка перенумерации — ${err.message}`);
+    }
+  });
+
   // Подписываемся на сохранение — сразу при активации
   const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
     const config = vscode.workspace.getConfiguration('comtext-lint');
@@ -111,7 +145,7 @@ export function activate(context) {
     await runCorrectOcrInFolder(folderUri.fsPath, true);
   });
 
-  context.subscriptions.push(checkCommand, correctCommand, correctFolderShallowCommand, correctFolderCommand, saveListener);
+  context.subscriptions.push(checkCommand, correctCommand, renumberFootnotesCommand, correctFolderShallowCommand, correctFolderCommand, saveListener);
 
   // Запускаем проверку для уже открытого файла нужного расширения
   const activeEditor = vscode.window.activeTextEditor;
