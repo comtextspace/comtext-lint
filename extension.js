@@ -93,40 +93,25 @@ export function activate(context) {
     await runLint(document);
   });
 
-  // Регистрируем команду исправления OCR-текста во всей папке (рекурсивно)
+  // Регистрируем команду исправления OCR-текста только в текущей папке (без подпапок)
+  const correctFolderShallowCommand = vscode.commands.registerCommand('comtext-lint.correctOcrFolderShallow', async (folderUri) => {
+    if (!folderUri) {
+      vscode.window.showWarningMessage('Команда должна вызываться из контекстного меню папки');
+      return;
+    }
+    await runCorrectOcrInFolder(folderUri.fsPath, false);
+  });
+
+  // Регистрируем команду исправления OCR-текста во всей папке рекурсивно
   const correctFolderCommand = vscode.commands.registerCommand('comtext-lint.correctOcrFolder', async (folderUri) => {
     if (!folderUri) {
       vscode.window.showWarningMessage('Команда должна вызываться из контекстного меню папки');
       return;
     }
-
-    const folderPath = folderUri.fsPath;
-    const entries = await readdir(folderPath, { withFileTypes: true, recursive: true });
-    const files = entries
-      .filter(e => e.isFile() && ALLOWED_EXTENSIONS.includes(extname(e.name).toLowerCase()))
-      .map(e => join(e.parentPath ?? e.path, e.name));
-
-    if (files.length === 0) {
-      vscode.window.showInformationMessage('Comtext OCR Fix: файлы .md и .ct в папке не найдены');
-      return;
-    }
-
-    let count = 0;
-    for (const filePath of files) {
-      const original = await readFile(filePath, 'utf8');
-      const corrected = correctComtext(original);
-      if (corrected !== original) {
-        await writeFile(filePath, corrected, 'utf8');
-        count++;
-      }
-    }
-
-    vscode.window.showInformationMessage(
-      `Comtext OCR Fix: обработано ${count} из ${files.length} файлов`
-    );
+    await runCorrectOcrInFolder(folderUri.fsPath, true);
   });
 
-  context.subscriptions.push(checkCommand, correctCommand, correctFolderCommand, saveListener);
+  context.subscriptions.push(checkCommand, correctCommand, correctFolderShallowCommand, correctFolderCommand, saveListener);
 
   // Запускаем проверку для уже открытого файла нужного расширения
   const activeEditor = vscode.window.activeTextEditor;
@@ -136,6 +121,37 @@ export function activate(context) {
     // Не ждём — просто запускаем фоновую проверку
     runLint(activeEditor.document).catch(() => {});
   }
+}
+
+/**
+ * Исправляет OCR-текст во всех файлах указанной папки.
+ * @param {string} folderPath
+ * @param {boolean} recursive — обходить подпапки рекурсивно
+ */
+async function runCorrectOcrInFolder(folderPath, recursive) {
+  const entries = await readdir(folderPath, { withFileTypes: true, recursive });
+  const files = entries
+    .filter(e => e.isFile() && ALLOWED_EXTENSIONS.includes(extname(e.name).toLowerCase()))
+    .map(e => join(e.parentPath ?? e.path, e.name));
+
+  if (files.length === 0) {
+    vscode.window.showInformationMessage('Comtext OCR Fix: файлы .md и .ct в папке не найдены');
+    return;
+  }
+
+  let count = 0;
+  for (const filePath of files) {
+    const original = await readFile(filePath, 'utf8');
+    const corrected = correctComtext(original);
+    if (corrected !== original) {
+      await writeFile(filePath, corrected, 'utf8');
+      count++;
+    }
+  }
+
+  vscode.window.showInformationMessage(
+    `Comtext OCR Fix: обработано ${count} из ${files.length} файлов`
+  );
 }
 
 async function runLint(document) {

@@ -22,6 +22,7 @@
     "onCommand:comtext-lint.checkFormat",
     "onCommand:comtext-lint.correctOcr",
     "onCommand:comtext-lint.correctOcrFolder",
+    "onCommand:comtext-lint.correctOcrFolderShallow",
     "onLanguage:markdown"
   ],
   "contributes": {
@@ -37,9 +38,20 @@
         "category": "Comtext Lint"
       },
       {
-        "command": "comtext-lint.correctOcrFolder",
-        "title": "Comtext Lint: Исправить OCR-текст в папке",
+        "command": "comtext-lint.correctOcrFolderShallow",
+        "title": "Исправить OCR-текст (только эта папка)",
         "category": "Comtext Lint"
+      },
+      {
+        "command": "comtext-lint.correctOcrFolder",
+        "title": "Исправить OCR-текст (папка и подпапки)",
+        "category": "Comtext Lint"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "comtext-lint/folder",
+        "label": "Comtext Lint"
       }
     ],
     "menus": {
@@ -52,9 +64,19 @@
       ],
       "explorer/context": [
         {
-          "command": "comtext-lint.correctOcrFolder",
+          "submenu": "comtext-lint/folder",
           "when": "explorerResourceIsFolder",
           "group": "2_workspace"
+        }
+      ],
+      "comtext-lint/folder": [
+        {
+          "command": "comtext-lint.correctOcrFolderShallow",
+          "group": "1@1"
+        },
+        {
+          "command": "comtext-lint.correctOcrFolder",
+          "group": "1@2"
         }
       ]
     },
