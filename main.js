@@ -1,9 +1,14 @@
 // main.js
 import { Command } from 'commander';
-import { existsSync, lstatSync, readdirSync } from 'fs';
-import { join, resolve, extname } from 'path';
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'fs';
+import { join, resolve, extname, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 import { checkFile } from './source/lint.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const { version } = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'));
 
 /**
  * Проверяет, имеет ли файл одно из указанных расширений
@@ -19,9 +24,20 @@ function processFile(filePath) {
     return;
   }
 
-  // checkFile сам выводит ошибки в console.error
-  // setExitCode: true - устанавливаем exit code для CLI
-  checkFile(filePath, { setExitCode: true });
+  const messages = checkFile(filePath);
+
+  // null означает, что файл не подлежит проверке
+  if (!messages) {
+    return;
+  }
+
+  for (const { line, column, reason } of messages) {
+    console.error(`${filePath}:${line}:${column}: ${reason}`);
+  }
+
+  if (messages.length > 0) {
+    process.exitCode = 1;
+  }
 }
 
 // Рекурсивная функция для каталога
@@ -71,7 +87,7 @@ const program = new Command();
 program
   .name('Comtext-lint')
   .description('CLI для проверки файлов на соответствие формату Comtext')
-  .version('1.1.0');
+  .version(version);
 
 program
   .argument('<path>', 'путь к файлу или каталогу')

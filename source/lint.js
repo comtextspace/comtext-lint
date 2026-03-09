@@ -63,22 +63,25 @@ function hasComtextFormat(fileContent) {
   }
 }
 
-export function checkFile(filePath, options) {
-
-  if (!options) {
-    options = {};
-  }
-
+/**
+ * Проверяет файл по правилам Comtext.
+ * Возвращает массив объектов { line, column, reason } или null,
+ * если файл не подлежит проверке (не то расширение, нет format: comtext).
+ *
+ * @param {string} filePath
+ * @returns {{ line: number, column: number, reason: string }[] | null}
+ */
+export function checkFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   if (ext !== '.md' && ext !== '.ct') {
-    return;
+    return null;
   }
 
   const fileContent = fs.readFileSync(filePath, 'utf8');
-  
+
   // Проверяем наличие frontmatter с format: comtext
   if (!hasComtextFormat(fileContent)) {
-    return;
+    return null;
   }
 
   const fileResult = remark()
@@ -88,13 +91,13 @@ export function checkFile(filePath, options) {
       // Список проверок с описанием
       // https://github.com/remarkjs/remark-lint
       .use(remarkLint)
-      
+
       // В цитатах текст начинается с третьего символа
       // > текст
       .use(remarkLintBlockquoteIndentation, 2)
-      
-      // Блок кода обрамляется символами ```, а не 
-      // пробелами  
+
+      // Блок кода обрамляется символами ```, а не
+      // пробелами
       .use(remarkLintCodeBlockStyle, 'fenced')
 
       // Ссылки такие [](url) а не такие ()[url]
@@ -106,7 +109,7 @@ export function checkFile(filePath, options) {
       .use(remarkLintFinalNewline)
       .use(remarkLintFirstHeadingLevel, 1)
 
-      // Для принудительного перевода строки указано 
+      // Для принудительного перевода строки указано
       // не больше двух пробелов в конце строки
       .use(remarkLintHardBreakSpaces)
 
@@ -124,24 +127,24 @@ export function checkFile(filePath, options) {
 
       // Одинаковый отступ у дочерних элементов списков
       .use(remarkLintListItemContentIndent)
-      
+
       // Отступ между маркером списка и содержимым равен 1
       .use(remarkLintListItemIndent, 'one')
-      
+
       // Ссылки должны быть сразу [text](url)]
       // Запрещён такой вариант
       // [Mercury][]
       // [mercury]: https://example.com/mercury/
       .use(remarkLintMediaStyle, 'resource')
-      
+
       // Недопустимы цитаты без маркера цитаты, такие как ниже
       // > цитата
       // тоже цитата
       .use(remarkLintNoBlockquoteWithoutMarker)
-      
+
       // Нет двух пустых строк подряд
       .use(remarkLintNoConsecutiveBlankLines)
-      
+
       // URL для ссылок и изображений должны быть заполнены
       .use(remarkLintNoEmptyUrl)
 
@@ -150,16 +153,16 @@ export function checkFile(filePath, options) {
 
       // Ограничивает количество хешей в начале строки
       .use(remarkLintNoHeadingLikeParagraph)
-      
+
       // Недопустимые символы в конце заголовков
       .use(remarkLintNoHeadingPunctuation, ',:;')
 
       // У строк таблицы должно быть столько же колонок сколько в заголовке
       .use(remarkLintNoHiddenTableCell)
-      
+
       // Запрет HTML в документе
       .use(remarkLintNoHtml)
-      
+
       // Есть пустые строки между блоками документа
       .use(remarkLintNoMissingBlankLines)
 
@@ -180,21 +183,9 @@ export function checkFile(filePath, options) {
 
       .processSync(fileContent);
 
-  for (const message of fileResult.messages) {
-    const { line, column, reason } = message;
-    // Если позиция неизвестна — ставим 1:1
-    const l = line ?? 1;
-    const c = column ?? 1;
-    console.error(`${filePath}:${l}:${c}: ${reason}`);
-  }
-
-  // Устанавливаем exit code, если есть ошибки (только для CLI, не для тестов)
-  // Проверяем, не запущены ли мы в тестовом окружении
-  const isTestEnvironment = typeof jest !== 'undefined' || 
-                            process.env.NODE_ENV === 'test' ||
-                            process.argv.some(arg => arg.includes('jest'));
-  
-  if (fileResult.messages.length > 0 && !isTestEnvironment && options.setExitCode !== false) {
-    process.exitCode = 1;
-  }
-};
+  return fileResult.messages.map(({ line, column, reason }) => ({
+    line: line ?? 1,
+    column: column ?? 1,
+    reason,
+  }));
+}

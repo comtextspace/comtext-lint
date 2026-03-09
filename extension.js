@@ -1,14 +1,10 @@
 // extension.js
 import * as vscode from 'vscode';
-import { spawn } from 'child_process';
-import { existsSync } from 'fs';
 import { readdir, readFile, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { correctComtext } from '@comtext/ocr-fix';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { checkFile } from './source/lint.js';
 
 let diagnosticCollection;
 let lastActiveEditor;
@@ -23,11 +19,10 @@ export function activate(context) {
     lastActiveEditor = vscode.window.activeTextEditor;
   }
   context.subscriptions.push(editorListener);
+
   // Создаём коллекцию диагностики один раз
-  if (!diagnosticCollection) {
-    diagnosticCollection = vscode.languages.createDiagnosticCollection('comtext-lint');
-    context.subscriptions.push(diagnosticCollection);
-  }
+  diagnosticCollection = vscode.languages.createDiagnosticCollection('comtext-lint');
+  context.subscriptions.push(diagnosticCollection);
 
   // Регистрируем команду проверки формата
   const checkCommand = vscode.commands.registerCommand('comtext-lint.checkFormat', async () => {
@@ -92,7 +87,7 @@ export function activate(context) {
     await runLint(document);
   });
 
-  // Регистрируем команду исправления OCR-текста во всей папке
+  // Регистрируем команду исправления OCR-текста во всей папке (рекурсивно)
   const correctFolderCommand = vscode.commands.registerCommand('comtext-lint.correctOcrFolder', async (folderUri) => {
     if (!folderUri) {
       vscode.window.showWarningMessage('Команда должна вызываться из контекстного меню папки');
@@ -100,10 +95,10 @@ export function activate(context) {
     }
 
     const folderPath = folderUri.fsPath;
-    const entries = await readdir(folderPath, { withFileTypes: true });
+    const entries = await readdir(folderPath, { withFileTypes: true, recursive: true });
     const files = entries
       .filter(e => e.isFile() && (e.name.endsWith('.md') || e.name.endsWith('.ct')))
-      .map(e => join(folderPath, e.name));
+      .map(e => join(e.parentPath ?? e.path, e.name));
 
     if (files.length === 0) {
       vscode.window.showInformationMessage('Comtext OCR Fix: файлы .md и .ct в папке не найдены');
@@ -135,7 +130,7 @@ export function activate(context) {
   }
 }
 
-async function runLint(document) {
+function runLint(document) {
   const filePath = document.uri.fsPath;
 
   // Очищаем предыдущие ошибки
@@ -143,66 +138,31 @@ async function runLint(document) {
 
   // Проверяем только нужные расширения
   if (!filePath.endsWith('.md') && !filePath.endsWith('.ct')) {
-    return;
+    return Promise.resolve();
   }
 
-  const scriptPath = join(__dirname, 'main.js');
-  if (!existsSync(scriptPath)) {
-    vscode.window.showErrorMessage(`Скрипт не найден: ${scriptPath}`);
-    return;
+  let messages;
+  try {
+    messages = checkFile(filePath);
+  } catch (err) {
+    vscode.window.showErrorMessage(`Comtext Lint: ошибка — ${err.message}`);
+    return Promise.resolve();
   }
 
-  return new Promise((resolve, reject) => {
-    const child = spawn('node', [scriptPath, filePath], {
-      cwd: __dirname,
-      env: { ...process.env }
-    });
+  // null — файл не подлежит проверке (нет format: comtext)
+  if (!messages) {
+    return Promise.resolve();
+  }
 
-    let stderr = '';
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-
-    child.on('error', (err) => {
-      vscode.window.showErrorMessage(`Ошибка запуска comtext-lint: ${err.message}`);
-      reject(err);
-    });
-
-    child.on('close', () => {
-      try {
-        if (stderr.trim()) {
-          const diagnostics = parseComtextLintOutput(stderr, document);
-          diagnosticCollection.set(document.uri, diagnostics);
-        } else {
-          diagnosticCollection.set(document.uri, []);
-        }
-        resolve();
-      } catch (e) {
-        reject(e);
-      }
-    });
+  const diagnostics = messages.map(({ line, column, reason }) => {
+    const lineNumber = Math.max(0, line - 1);
+    const col = Math.max(0, column - 1);
+    const range = new vscode.Range(lineNumber, col, lineNumber, col + 1);
+    return new vscode.Diagnostic(range, reason, vscode.DiagnosticSeverity.Warning);
   });
-}
 
-function parseComtextLintOutput(output, document) {
-  const diagnostics = [];
-  const lines = output.split(/\r?\n/);
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const match = line.match(/^(.+?):(\d+):(\d+):\s*(.+)$/);
-    if (match) {
-      const [, file, l, c, message] = match;
-      if (file === document.uri.fsPath) {
-        const lineNumber = Math.max(0, parseInt(l, 10) - 1);
-        const column = Math.max(0, parseInt(c, 10) - 1);
-        const range = new vscode.Range(lineNumber, column, lineNumber, column + 1);
-        diagnostics.push(new vscode.Diagnostic(range, message.trim(), vscode.DiagnosticSeverity.Warning));
-      }
-    }
-  }
-
-  return diagnostics;
+  diagnosticCollection.set(document.uri, diagnostics);
+  return Promise.resolve();
 }
 
 export function deactivate() {
