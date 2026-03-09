@@ -38,9 +38,9 @@ const remarkLintFrontmatterRequiredFields = lintRule(
         // ✅ Автоматическая проверка всех полей из массива
         const missingFields = REQUIRED_FIELDS.filter((field) => !(field in data));
 
-        missingFields.forEach((field) => {
+        for (const field of missingFields) {
           file.message(`Frontmatter is missing required field: ${field}`, frontmatter);
-        });
+        }
       } catch (err) {
         file.message(`Invalid YAML in frontmatter: ${err.message}`, frontmatter);
       }

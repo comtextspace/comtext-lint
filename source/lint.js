@@ -43,6 +43,9 @@ import remarkLintFrontmatterRequiredFields from './rules/remark-lint-frontmatter
 import remarkLintHeadingMaxLevel from './rules/remark-lint-heading-max-level.js';
 import remarkLintEmphasisWholePhrase from './rules/remark-lint-emphasis-whole-phrase.js';
 
+/** Расширения файлов, которые подлежат проверке */
+export const ALLOWED_EXTENSIONS = ['.md', '.ct'];
+
 /**
  * Проверяет, есть ли в файле frontmatter с format: comtext
  */
@@ -174,7 +177,7 @@ const processor = remark()
  */
 export function checkFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  if (ext !== '.md' && ext !== '.ct') {
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
     return null;
   }
 

@@ -4,22 +4,14 @@ import { existsSync, lstatSync, readdirSync, readFileSync } from 'fs';
 import { join, resolve, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { checkFile } from './source/lint.js';
+import { checkFile, ALLOWED_EXTENSIONS } from './source/lint.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'));
 
-/**
- * Проверяет, имеет ли файл одно из указанных расширений
- */
-function hasAllowedExtension(filePath, allowedExtensions) {
-  const ext = extname(filePath).toLowerCase();
-  return allowedExtensions.some(extName => extName.toLowerCase() === ext);
-}
-
 // Функция обработки одного файла
 function processFile(filePath) {
-  if (!hasAllowedExtension(filePath, ['.md', '.ct'])) {
+  if (!ALLOWED_EXTENSIONS.includes(extname(filePath).toLowerCase())) {
     return;
   }
 
@@ -85,8 +77,6 @@ program
 
 program
   .argument('<path>', 'путь к файлу или каталогу')
-  .action((inputPath) => {
-    processPath(inputPath);
-  });
+  .action(processPath);
 
 program.parse();

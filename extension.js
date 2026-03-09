@@ -1,10 +1,10 @@
 // extension.js
 import * as vscode from 'vscode';
 import { readdir, readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { extname, join } from 'path';
 import { correctComtext } from '@comtext/ocr-fix';
 
-import { checkFile } from './source/lint.js';
+import { checkFile, ALLOWED_EXTENSIONS } from './source/lint.js';
 
 let diagnosticCollection;
 let lastActiveEditor;
@@ -103,7 +103,7 @@ export function activate(context) {
     const folderPath = folderUri.fsPath;
     const entries = await readdir(folderPath, { withFileTypes: true, recursive: true });
     const files = entries
-      .filter(e => e.isFile() && (e.name.endsWith('.md') || e.name.endsWith('.ct')))
+      .filter(e => e.isFile() && ALLOWED_EXTENSIONS.includes(extname(e.name).toLowerCase()))
       .map(e => join(e.parentPath ?? e.path, e.name));
 
     if (files.length === 0) {
@@ -128,9 +128,11 @@ export function activate(context) {
 
   context.subscriptions.push(checkCommand, correctCommand, correctFolderCommand, saveListener);
 
-  // 🔥 Запускаем проверку для уже открытых Markdown-файлов
+  // Запускаем проверку для уже открытого файла нужного расширения
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor && activeEditor.document.languageId === 'markdown') {
+  if (activeEditor && ALLOWED_EXTENSIONS.includes(
+    extname(activeEditor.document.uri.fsPath).toLowerCase()
+  )) {
     // Не ждём — просто запускаем фоновую проверку
     runLint(activeEditor.document).catch(() => {});
   }
@@ -143,7 +145,7 @@ async function runLint(document) {
   diagnosticCollection.set(document.uri, []);
 
   // Проверяем только нужные расширения
-  if (!filePath.endsWith('.md') && !filePath.endsWith('.ct')) {
+  if (!ALLOWED_EXTENSIONS.includes(extname(filePath).toLowerCase())) {
     return;
   }
 

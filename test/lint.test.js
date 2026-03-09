@@ -50,6 +50,20 @@ describe('checkFile', () => {
     expect(messages).toBeNull();
   });
 
+  it('should return null for unsupported file extension', () => {
+    const tmpPath = path.join(os.tmpdir(), 'test-file.txt');
+    fs.writeFileSync(tmpPath, 'some content', 'utf8');
+
+    try {
+      const messages = checkFile(tmpPath);
+      expect(messages).toBeNull();
+    } finally {
+      if (fs.existsSync(tmpPath)) {
+        fs.unlinkSync(tmpPath);
+      }
+    }
+  });
+
   it('should ignore file without frontmatter', () => {
     const tmpPath = path.join(os.tmpdir(), '5-no-frontmatter.md');
     const content = '# Заголовок\n\nТекст без фронтматтера\n';
