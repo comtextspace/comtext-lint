@@ -6,8 +6,7 @@ import { fileURLToPath } from 'url';
 
 import { checkFile } from './source/lint.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'));
 
 /**
@@ -40,24 +39,19 @@ function processFile(filePath) {
   }
 }
 
-// Рекурсивная функция для каталога
+// Обходит каталог рекурсивно и проверяет все файлы
 function processDirectory(dirPath) {
-  let files;
+  let entries;
   try {
-    files = readdirSync(dirPath);
+    entries = readdirSync(dirPath, { withFileTypes: true, recursive: true });
   } catch (err) {
     console.error(`❌ Не удалось прочитать каталог: ${dirPath}`, err.message);
     return;
   }
 
-  for (const file of files) {
-    const filePath = join(dirPath, file);
-    const stat = lstatSync(filePath);
-
-    if (stat.isFile()) {
-      processFile(filePath);
-    } else if (stat.isDirectory()) {
-      processDirectory(filePath);
+  for (const entry of entries) {
+    if (entry.isFile()) {
+      processFile(join(entry.parentPath, entry.name));
     }
   }
 }

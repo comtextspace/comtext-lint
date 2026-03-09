@@ -9,9 +9,19 @@ import { checkFile } from './source/lint.js';
 let diagnosticCollection;
 let lastActiveEditor;
 
+/**
+ * Возвращает текущий активный редактор.
+ * Нужно для команд из палитры (Ctrl+Shift+P), где activeTextEditor
+ * может быть undefined в момент вызова.
+ */
+function getActiveEditor() {
+  return vscode.window.activeTextEditor
+    ?? lastActiveEditor
+    ?? vscode.window.visibleTextEditors[0];
+}
+
 export function activate(context) {
-  // Запоминаем последний активный редактор — нужно для команд из палитры (Ctrl+Shift+P),
-  // где activeTextEditor может быть undefined в момент вызова
+  // Запоминаем последний активный редактор
   const editorListener = vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor) lastActiveEditor = editor;
   });
@@ -27,9 +37,7 @@ export function activate(context) {
   // Регистрируем команду проверки формата
   const checkCommand = vscode.commands.registerCommand('comtext-lint.checkFormat', async () => {
     try {
-      const editor = vscode.window.activeTextEditor
-        ?? lastActiveEditor
-        ?? vscode.window.visibleTextEditors[0];
+      const editor = getActiveEditor();
 
       if (!editor) {
         vscode.window.showWarningMessage('Нет открытого файла для проверки');
@@ -45,9 +53,7 @@ export function activate(context) {
   // Регистрируем команду исправления OCR-текста
   const correctCommand = vscode.commands.registerCommand('comtext-lint.correctOcr', async () => {
     try {
-      const editor = vscode.window.activeTextEditor
-        ?? lastActiveEditor
-        ?? vscode.window.visibleTextEditors[0];
+      const editor = getActiveEditor();
 
       if (!editor) {
         vscode.window.showWarningMessage('Нет открытого файла для исправления');
@@ -130,7 +136,7 @@ export function activate(context) {
   }
 }
 
-function runLint(document) {
+async function runLint(document) {
   const filePath = document.uri.fsPath;
 
   // Очищаем предыдущие ошибки
@@ -138,7 +144,7 @@ function runLint(document) {
 
   // Проверяем только нужные расширения
   if (!filePath.endsWith('.md') && !filePath.endsWith('.ct')) {
-    return Promise.resolve();
+    return;
   }
 
   let messages;
@@ -146,12 +152,12 @@ function runLint(document) {
     messages = checkFile(filePath);
   } catch (err) {
     vscode.window.showErrorMessage(`Comtext Lint: ошибка — ${err.message}`);
-    return Promise.resolve();
+    return;
   }
 
   // null — файл не подлежит проверке (нет format: comtext)
   if (!messages) {
-    return Promise.resolve();
+    return;
   }
 
   const diagnostics = messages.map(({ line, column, reason }) => {
@@ -162,7 +168,6 @@ function runLint(document) {
   });
 
   diagnosticCollection.set(document.uri, diagnostics);
-  return Promise.resolve();
 }
 
 export function deactivate() {

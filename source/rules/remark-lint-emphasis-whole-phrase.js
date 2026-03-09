@@ -1,7 +1,50 @@
 // remark-lint-emphasis-whole-phrase.js
 import { lintRule } from 'unified-lint-rule';
+import { visit } from 'unist-util-visit';
 
 const PLUGIN_NAME = 'remark-lint:emphasis-whole-phrase';
+
+/**
+ * Извлекает текстовое содержимое AST-узла (рекурсивно по children).
+ *
+ * @param {import('mdast').PhrasingContent} node
+ * @returns {string}
+ */
+function nodeText(node) {
+  if (node.type === 'text') return node.value;
+  if (node.children) return node.children.map(nodeText).join('');
+  return '';
+}
+
+/**
+ * Возвращает тип выделения узла:
+ * - 'strong'         для **text**
+ * - 'emphasis'       для *text*
+ * - 'strongEmphasis' для ***text*** (emphasis > strong)
+ * - null             для всего остального
+ *
+ * @param {import('mdast').PhrasingContent} node
+ * @returns {'strong' | 'emphasis' | 'strongEmphasis' | null}
+ */
+function emphasisType(node) {
+  if (node.type === 'strong') {
+    return 'strong';
+  }
+  if (node.type === 'emphasis') {
+    // ***text*** парсится как emphasis > strong
+    if (node.children.length === 1 && node.children[0].type === 'strong') {
+      return 'strongEmphasis';
+    }
+    return 'emphasis';
+  }
+  return null;
+}
+
+const TYPE_META = {
+  strong:         { marker: '**',  label: 'bold' },
+  emphasis:       { marker: '*',   label: 'emphasis' },
+  strongEmphasis: { marker: '***', label: 'strong emphasis' },
+};
 
 const remarkLintEmphasisWholePhrase = lintRule(
   {
@@ -13,50 +56,33 @@ const remarkLintEmphasisWholePhrase = lintRule(
    * @returns {void}
    */
   function (tree, file) {
-    const value = String(file);
-    const lines = value.split(/\r?\n/);
+    // Обходим только параграфы — код, заголовки и прочее не затрагиваем
+    visit(tree, 'paragraph', (paragraph) => {
+      const children = paragraph.children;
 
-    // Ищем паттерны вида **слово1** **слово2** или *слово1* *слово2*
-    // в одной строке
-    lines.forEach((line, lineIndex) => {
-      // Проверяем полужирный: **слово1** **слово2**
-      const boldPattern = /\*\*([^*]+)\*\*\s+\*\*([^*]+)\*\*/g;
-      let match;
-      while ((match = boldPattern.exec(line)) !== null) {
-        const startColumn = match.index + 1;
-        file.message(
-          `Multiple bold markers should be combined: use **${match[1]} ${match[2]}** instead of **${match[1]}** **${match[2]}**`,
-          {
-            line: lineIndex + 1,
-            column: startColumn
-          }
-        );
-      }
+      for (let i = 0; i + 2 < children.length; i++) {
+        const nodeA = children[i];
+        const sep   = children[i + 1];
+        const nodeB = children[i + 2];
 
-      // Проверяем курсив: *слово1* *слово2* (но не **слово**)
-      // Используем негативный lookbehind и lookahead чтобы не ловить **
-      const emphasisPattern = /(?<!\*)\*([^*\s][^*]*[^*\s])\*\s+\*([^*\s][^*]*[^*\s])\*(?!\*)/g;
-      while ((match = emphasisPattern.exec(line)) !== null) {
-        const startColumn = match.index + 1;
-        file.message(
-          `Multiple emphasis markers should be combined: use *${match[1]} ${match[2]}* instead of *${match[1]}* *${match[2]}*`,
-          {
-            line: lineIndex + 1,
-            column: startColumn
-          }
-        );
-      }
+        // Разделитель должен быть текстовым узлом только из пробелов
+        if (sep.type !== 'text' || sep.value.trim() !== '') continue;
 
-      // Проверяем комбинированное: ***слово1*** ***слово2***
-      const strongEmphasisPattern = /\*\*\*([^*]+)\*\*\*\s+\*\*\*([^*]+)\*\*\*/g;
-      while ((match = strongEmphasisPattern.exec(line)) !== null) {
-        const startColumn = match.index + 1;
+        const typeA = emphasisType(nodeA);
+        const typeB = emphasisType(nodeB);
+
+        // Оба узла должны быть одного типа выделения
+        if (!typeA || typeA !== typeB) continue;
+
+        const { marker, label } = TYPE_META[typeA];
+        const textA = nodeText(nodeA);
+        const textB = nodeText(nodeB);
+
         file.message(
-          `Multiple strong emphasis markers should be combined: use ***${match[1]} ${match[2]}*** instead of ***${match[1]}*** ***${match[2]}***`,
-          {
-            line: lineIndex + 1,
-            column: startColumn
-          }
+          `Multiple ${label} markers should be combined: ` +
+          `use ${marker}${textA} ${textB}${marker} ` +
+          `instead of ${marker}${textA}${marker} ${marker}${textB}${marker}`,
+          nodeA
         );
       }
     });

@@ -63,6 +63,107 @@ function hasComtextFormat(fileContent) {
   }
 }
 
+// Процессор собирается один раз и замораживается — безопасно переиспользуется
+// при каждом вызове checkFile, что важно для VS Code (lint на каждом сохранении).
+const processor = remark()
+  .use(remarkGfm)
+  .use(remarkFrontmatter)
+
+  // Список проверок с описанием
+  // https://github.com/remarkjs/remark-lint
+  .use(remarkLint)
+
+  // В цитатах текст начинается с третьего символа
+  // > текст
+  .use(remarkLintBlockquoteIndentation, 2)
+
+  // Блок кода обрамляется символами ```, а не
+  // пробелами
+  .use(remarkLintCodeBlockStyle, 'fenced')
+
+  // Ссылки такие [](url) а не такие ()[url]
+  .use(remarkLintCorrectMediaSyntax)
+
+  // Символ для обозначения блока кода
+  .use(remarkLintFencedCodeMarker, '`')
+
+  .use(remarkLintFinalNewline)
+  .use(remarkLintFirstHeadingLevel, 1)
+
+  // Для принудительного перевода строки указано
+  // не больше двух пробелов в конце строки
+  .use(remarkLintHardBreakSpaces)
+
+  // Заголовки должны возрастать без пропусков
+  .use(remarkLintHeadingIncrement)
+
+  // Заголовки вида
+  // # Заголовок
+  .use(remarkLintHeadingStyle, 'atx')
+
+  .use(remarkLintLinebreakStyle, 'unix')
+
+  // Отступы слева для списков равны нулю
+  .use(remarkLintListItemBulletIndent)
+
+  // Одинаковый отступ у дочерних элементов списков
+  .use(remarkLintListItemContentIndent)
+
+  // Отступ между маркером списка и содержимым равен 1
+  .use(remarkLintListItemIndent, 'one')
+
+  // Ссылки должны быть сразу [text](url)]
+  // Запрещён такой вариант
+  // [Mercury][]
+  // [mercury]: https://example.com/mercury/
+  .use(remarkLintMediaStyle, 'resource')
+
+  // Недопустимы цитаты без маркера цитаты, такие как ниже
+  // > цитата
+  // тоже цитата
+  .use(remarkLintNoBlockquoteWithoutMarker)
+
+  // Нет двух пустых строк подряд
+  .use(remarkLintNoConsecutiveBlankLines)
+
+  // URL для ссылок и изображений должны быть заполнены
+  .use(remarkLintNoEmptyUrl)
+
+  .use(remarkLintNoHeadingContentIndent)
+  .use(remarkLintNoHeadingIndent)
+
+  // Ограничивает количество хешей в начале строки
+  .use(remarkLintNoHeadingLikeParagraph)
+
+  // Недопустимые символы в конце заголовков
+  .use(remarkLintNoHeadingPunctuation, ',:;')
+
+  // У строк таблицы должно быть столько же колонок сколько в заголовке
+  .use(remarkLintNoHiddenTableCell)
+
+  // Запрет HTML в документе
+  .use(remarkLintNoHtml)
+
+  // Есть пустые строки между блоками документа
+  .use(remarkLintNoMissingBlankLines)
+
+  .use(remarkLintNoMultipleToplevelHeadings)
+  .use(remarkLintNoParagraphContentIndent)
+  .use(remarkLintNoTableIndentation)
+  .use(remarkLintNoTabs)
+  .use(remarkLintNoUnusedDefinitions)
+
+  .use(remarkLintRuleStyle, '---')
+
+  .use(remarkLintUnorderedListMarkerStyle, '*')
+
+  // Custom rules
+  .use(remarkLintFrontmatterRequiredFields)
+  .use(remarkLintHeadingMaxLevel)
+  .use(remarkLintEmphasisWholePhrase)
+
+  .freeze();
+
 /**
  * Проверяет файл по правилам Comtext.
  * Возвращает массив объектов { line, column, reason } или null,
@@ -84,104 +185,7 @@ export function checkFile(filePath) {
     return null;
   }
 
-  const fileResult = remark()
-      .use(remarkGfm)
-      .use(remarkFrontmatter)
-
-      // Список проверок с описанием
-      // https://github.com/remarkjs/remark-lint
-      .use(remarkLint)
-
-      // В цитатах текст начинается с третьего символа
-      // > текст
-      .use(remarkLintBlockquoteIndentation, 2)
-
-      // Блок кода обрамляется символами ```, а не
-      // пробелами
-      .use(remarkLintCodeBlockStyle, 'fenced')
-
-      // Ссылки такие [](url) а не такие ()[url]
-      .use(remarkLintCorrectMediaSyntax)
-
-      // Символ для обозначения блока кода
-      .use(remarkLintFencedCodeMarker, '`')
-
-      .use(remarkLintFinalNewline)
-      .use(remarkLintFirstHeadingLevel, 1)
-
-      // Для принудительного перевода строки указано
-      // не больше двух пробелов в конце строки
-      .use(remarkLintHardBreakSpaces)
-
-      // Заголовки должны возрастать без пропусков
-      .use(remarkLintHeadingIncrement)
-
-      // Заголовки вида
-      // # Заголовок
-      .use(remarkLintHeadingStyle, 'atx')
-
-      .use(remarkLintLinebreakStyle, 'unix')
-
-      // Отступы слева для списков равны нулю
-      .use(remarkLintListItemBulletIndent)
-
-      // Одинаковый отступ у дочерних элементов списков
-      .use(remarkLintListItemContentIndent)
-
-      // Отступ между маркером списка и содержимым равен 1
-      .use(remarkLintListItemIndent, 'one')
-
-      // Ссылки должны быть сразу [text](url)]
-      // Запрещён такой вариант
-      // [Mercury][]
-      // [mercury]: https://example.com/mercury/
-      .use(remarkLintMediaStyle, 'resource')
-
-      // Недопустимы цитаты без маркера цитаты, такие как ниже
-      // > цитата
-      // тоже цитата
-      .use(remarkLintNoBlockquoteWithoutMarker)
-
-      // Нет двух пустых строк подряд
-      .use(remarkLintNoConsecutiveBlankLines)
-
-      // URL для ссылок и изображений должны быть заполнены
-      .use(remarkLintNoEmptyUrl)
-
-      .use(remarkLintNoHeadingContentIndent)
-      .use(remarkLintNoHeadingIndent)
-
-      // Ограничивает количество хешей в начале строки
-      .use(remarkLintNoHeadingLikeParagraph)
-
-      // Недопустимые символы в конце заголовков
-      .use(remarkLintNoHeadingPunctuation, ',:;')
-
-      // У строк таблицы должно быть столько же колонок сколько в заголовке
-      .use(remarkLintNoHiddenTableCell)
-
-      // Запрет HTML в документе
-      .use(remarkLintNoHtml)
-
-      // Есть пустые строки между блоками документа
-      .use(remarkLintNoMissingBlankLines)
-
-      .use(remarkLintNoMultipleToplevelHeadings)
-      .use(remarkLintNoParagraphContentIndent)
-      .use(remarkLintNoTableIndentation)
-      .use(remarkLintNoTabs)
-      .use(remarkLintNoUnusedDefinitions)
-
-      .use(remarkLintRuleStyle, '---')
-
-      .use(remarkLintUnorderedListMarkerStyle, '*')
-
-      // Custom rules
-      .use(remarkLintFrontmatterRequiredFields)
-      .use(remarkLintHeadingMaxLevel)
-      .use(remarkLintEmphasisWholePhrase)
-
-      .processSync(fileContent);
+  const fileResult = processor.processSync(fileContent);
 
   return fileResult.messages.map(({ line, column, reason }) => ({
     line: line ?? 1,
