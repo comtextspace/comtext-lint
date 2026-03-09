@@ -2,7 +2,7 @@
   "name": "comtext-lint",
   "displayName": "Comtext Lint",
   "description": "Проверка формата текстовых файлов по правилам формата Комтекст",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "publisher": "comtext",
   "engines": {
     "vscode": "^1.102.0",
@@ -120,7 +120,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@comtext/ocr-fix": "^1.2.0",
+    "@comtext/ocr-fix": "^1.2.1",
     "commander": "^14.0.0",
     "has-flag": "^5.0.1",
     "is-fullwidth-code-point": "^5.1.0",

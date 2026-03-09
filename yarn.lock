@@ -408,10 +408,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@comtext/ocr-fix@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@comtext/ocr-fix/-/ocr-fix-1.2.0.tgz#910a8bff6c8a820e941a2491fe21e456a52154c9"
-  integrity sha512-JsmzzYLWJne9XF4yLpfgR7a5V2FvK6jW2dr5LdP9GzRzLuN0RoAZ2uo/vu3dJj1EJySATKtUhGc/ye7+WyGgqQ==
+"@comtext/ocr-fix@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@comtext/ocr-fix/-/ocr-fix-1.2.1.tgz#9b6134ffda8809b6ced653560e36e768e6b024e8"
+  integrity sha512-Izj5LoEU892O27A61JMD427QjjbR1q3LZkO5VACm5UtrmjXG+nJWuWtu8P39B9L35g5w50qdfPBTT5OJxyJ+5g==
 
 "@emnapi/core@^1.4.3":
   version "1.4.5"
